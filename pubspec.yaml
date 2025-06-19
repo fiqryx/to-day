@@ -1,0 +1,39 @@
+name: today
+description: "A minimalist yet powerful todo app that helps you focus on what matters today"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.2
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  shadcn_ui: ^0.16.3
+  provider: ^6.1.2
+  flutter_secure_storage: ^9.2.4
+  sqflite: ^2.4.1
+  path: ^1.9.0
+  uuid: ^4.5.1
+  intl: ^0.19.0
+  flutter_localizations:
+    sdk: flutter
+  flutter_launcher_icons: ^0.14.4
+  back_button_interceptor: ^8.0.4
+  fluttertoast: ^8.2.12
+  flutter_dotenv: ^5.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+flutter:
+  generate: true
+  uses-material-design: true
+  assets:
+    - .env
+    - assets/
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logo.png"

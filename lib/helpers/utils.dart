@@ -44,17 +44,28 @@ class Utils {
     final difference = date.difference(now).inDays;
 
     if (isSameDay(date, now)) {
-      return 'Hari Ini';
+      return 'Today';
     } else if (difference == 1) {
-      return 'Besok';
+      return 'Tomorrow';
     } else if (difference == -1) {
-      return 'Kemarin';
+      return 'Yesterday';
     } else if (difference > 1 && difference <= 7) {
-      return '$difference hari lagi';
+      return '$difference more days';
     } else if (difference < -1 && difference >= -7) {
-      return '${difference.abs()} hari yang lalu';
+      return '${difference.abs()} days ago';
     } else {
       return formatForDisplay(date);
+    }
+  }
+
+  static String getActivityNotificationTitle(String priority, title) {
+    switch (priority) {
+      case "high":
+        return "⏰ URGENT: $title!";
+      case "medium":
+        return "📌 Don't forget: $title";
+      default:
+        return "🔔 Reminder: $title";
     }
   }
 }

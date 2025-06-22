@@ -1,6 +1,13 @@
+// ignore_for_file: unused_element
+
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:today/helpers/notification.dart';
+import 'package:today/helpers/utils.dart';
+import 'package:today/stores/app_store.dart';
+import 'package:today/widgets/list_sheet.dart';
 import '../models/activity.dart';
 import '../services/activity_service.dart';
 
@@ -19,18 +26,36 @@ class AddActivityDialog extends StatefulWidget {
 }
 
 class _AddActivityDialogState extends State<AddActivityDialog> {
+  late ActivityService _activityService;
+  late AppStore _appStore;
+
   final _formKey = GlobalKey<ShadFormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  late ActivityService _activityService;
 
   String _selectedPriority = 'medium';
   TimeOfDay _selectedTime = TimeOfDay.now();
   bool _isLoading = false;
+  List<GlobalKey> _tileKeys = [];
+
+  String _sound = "Default system";
+  final List<String> _soundList = [
+    "Silent",
+    "Default system",
+    "Sound 1",
+    "Sound 2",
+    "Sound 3",
+    "Sound 4",
+    "Sound 5",
+    "Sound 6",
+    "Sound 7"
+  ];
 
   @override
   void initState() {
     super.initState();
+    _tileKeys = List.generate(_soundList.length, (_) => GlobalKey());
+
     if (widget.activity != null) {
       _titleController.text = widget.activity!.title;
       _descriptionController.text = widget.activity!.description ?? '';
@@ -46,6 +71,7 @@ class _AddActivityDialogState extends State<AddActivityDialog> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _appStore = Provider.of<AppStore>(context);
     _activityService = Provider.of<ActivityService>(context);
   }
 
@@ -61,11 +87,7 @@ class _AddActivityDialogState extends State<AddActivityDialog> {
       context: context,
       initialTime: _selectedTime,
       builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: ColorScheme.light(
-            primary: Theme.of(context).primaryColor,
-          ),
-        ),
+        data: Theme.of(context),
         child: child!,
       ),
     );
@@ -91,6 +113,9 @@ class _AddActivityDialogState extends State<AddActivityDialog> {
           time: timeString,
           priority: _selectedPriority,
         );
+
+        await _scheduleNotification(activity);
+
         if (!mounted) return;
         Navigator.pop(context, activity);
       } else {
@@ -103,6 +128,11 @@ class _AddActivityDialogState extends State<AddActivityDialog> {
           priority: _selectedPriority,
         );
         await _activityService.update(updatedActivity);
+
+        var notifId = updatedActivity.id.hashCode.abs() % 2147483647;
+        await Notif.cancel(notifId);
+        await _scheduleNotification(updatedActivity);
+
         if (!mounted) return;
         Navigator.pop(context, updatedActivity);
       }
@@ -120,6 +150,27 @@ class _AddActivityDialogState extends State<AddActivityDialog> {
     }
   }
 
+  Future<void> _scheduleNotification(Activity activity) async {
+    final scheduledDate = activity.dateTime;
+    if (scheduledDate.isAfter(DateTime.now()) && _appStore.reminder) {
+      await Notif.createScheduleNewNotification(
+        date: scheduledDate,
+        content: NotificationContent(
+          id: activity.id.hashCode.abs() % 2147483647,
+          channelKey: "basic_channel",
+          title: Utils.getActivityNotificationTitle(
+              activity.priority, activity.title),
+          body:
+              "You scheduled this for ${DateFormat('MMM d, h:mm a').format(scheduledDate)}",
+          payload: {
+            'activityId': activity.id,
+            'type': 'reminder',
+          },
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
@@ -130,84 +181,100 @@ class _AddActivityDialogState extends State<AddActivityDialog> {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: theme.colorScheme.input),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  widget.activity == null ? 'Add Activity' : 'Edit Activity',
-                  style: theme.textTheme.large.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                  splashRadius: 20,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ShadForm(
-              key: _formKey,
-              child: Column(
+            // Fixed Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  ShadInputFormField(
-                    controller: _titleController,
-                    placeholder: const Text('Enter title'),
-                    // description: const Text('This is your activity title.'),
-                    validator: (value) =>
-                        value.trim().isEmpty ? 'The title is required' : null,
+                  Text(
+                    widget.activity == null ? 'Add Activity' : 'Edit Activity',
+                    style: theme.textTheme.large.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  ShadInputFormField(
-                    controller: _descriptionController,
-                    placeholder: const Text('Description (Optional)'),
-                    maxLines: 2,
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                    splashRadius: 20,
                   ),
-                  const SizedBox(height: 16),
-                  _TimePickerTile(
-                    time: _selectedTime,
-                    onTap: _selectTime,
-                  ),
-                  const SizedBox(height: 16),
-                  _PrioritySelector(
-                    selectedPriority: _selectedPriority,
-                    onChanged: (value) =>
-                        setState(() => _selectedPriority = value),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
+                ],
+              ),
+            ),
+            // Scrollable Content
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: ShadForm(
+                  key: _formKey,
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: ShadButton.outline(
-                          onPressed:
-                              _isLoading ? null : () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
+                      ShadInputFormField(
+                        controller: _titleController,
+                        placeholder: const Text('Enter title'),
+                        // description: const Text('This is your activity title.'),
+                        validator: (value) => value.trim().isEmpty
+                            ? 'The title is required'
+                            : null,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ShadButton(
-                          onPressed: _isLoading ? null : _saveActivity,
-                          child: _isLoading
-                              ? SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                )
-                              : Text(widget.activity == null ? 'Add' : 'Save'),
-                        ),
+                      const SizedBox(height: 16),
+                      ShadInputFormField(
+                        controller: _descriptionController,
+                        placeholder: const Text('Description (Optional)'),
+                        maxLines: 2,
                       ),
+                      const SizedBox(height: 16),
+                      _TimePickerTile(
+                        time: _selectedTime,
+                        onTap: _selectTime,
+                      ),
+                      const SizedBox(height: 16),
+                      _PrioritySelector(
+                        selectedPriority: _selectedPriority,
+                        onChanged: (value) =>
+                            setState(() => _selectedPriority = value),
+                      ),
+                      // const SizedBox(height: 16),
+                      // _AlarmSelector(title: Text(_sound), onClick: _showSheet),
                     ],
+                  ),
+                ),
+              ),
+            ),
+            // Fixed Footer
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ShadButton.outline(
+                      onPressed:
+                          _isLoading ? null : () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ShadButton(
+                      onPressed: _isLoading ? null : _saveActivity,
+                      child: _isLoading
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: theme.colorScheme.primary,
+                              ),
+                            )
+                          : Text(widget.activity == null ? 'Add' : 'Save'),
+                    ),
                   ),
                 ],
               ),
@@ -215,6 +282,45 @@ class _AddActivityDialogState extends State<AddActivityDialog> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        final colorScheme = ShadTheme.of(context).colorScheme;
+
+        return ListSheetWidget(
+          title: "Alarm Sound",
+          selected: _sound,
+          values: _soundList,
+          tileKeys: _tileKeys,
+          onChanged: (selected) {
+            setState(() => _sound = selected);
+          },
+          trailing: (value, active) {
+            if (!active) return null;
+            return Material(
+              shape: const CircleBorder(),
+              color: colorScheme.primary,
+              clipBehavior: Clip.hardEdge,
+              child: InkWell(
+                onTap: () => debugPrint('Clicked $active'),
+                radius: 16,
+                child: Padding(
+                  padding: const EdgeInsets.all(2.5),
+                  child: Icon(
+                    size: 12,
+                    LucideIcons.check,
+                    color: colorScheme.primaryForeground,
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -327,6 +433,39 @@ class _PrioritySelector extends StatelessWidget {
           }).toList(),
         ),
       ],
+    );
+  }
+}
+
+class _AlarmSelector extends StatelessWidget {
+  final Widget? title;
+  final void Function()? onClick;
+
+  const _AlarmSelector({
+    this.title,
+    this.onClick,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    var theme = ShadTheme.of(context);
+    return ListTile(
+      title: title,
+      onTap: onClick,
+      leading: Transform.scale(
+        scale: 0.8,
+        child: const Icon(LucideIcons.bellRing),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: theme.colorScheme.input),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+      ),
+      trailing: IconButton(
+        onPressed: onClick,
+        padding: EdgeInsets.zero,
+        icon: const Icon(size: 16, LucideIcons.chevronDown),
+      ),
     );
   }
 }

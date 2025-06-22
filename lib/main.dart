@@ -4,8 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:today/helpers/database.dart';
+import 'package:today/helpers/notification.dart';
 import 'package:today/repository/activity_repository.dart';
+import 'package:today/screens/help_screen.dart';
 import 'package:today/screens/home_screen.dart';
+import 'package:today/screens/settings_screen.dart';
 import 'package:today/screens/splash_screen.dart';
 import 'package:today/services/activity_service.dart';
 import 'package:today/stores/app_store.dart';
@@ -15,6 +18,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Notif.initializeLocalNotifications();
+  await Notif.initializeIsolateReceivePort();
   await dotenv.load(fileName: ".env");
 
   final appStore = AppStore();
@@ -35,14 +40,21 @@ void main() async {
   ));
 }
 
+final routes = <String, WidgetBuilder>{
+  '/splash': (ctx) => const SplashScreen(),
+  '/home': (ctx) => const HomeScreen(),
+  '/settings': (ctx) => const SettingsScreen(),
+  '/help': (ctx) => const HelpScreen(),
+};
+
 class App extends StatefulWidget {
   const App({super.key});
 
   @override
-  State<StatefulWidget> createState() => _AppState();
+  State<App> createState() => _App();
 }
 
-class _AppState extends State<App> {
+class _App extends State<App> {
   DateTime? lastBackPressTime;
 
   @override
@@ -59,11 +71,6 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    final routes = <String, WidgetBuilder>{
-      '/splash': (ctx) => const SplashScreen(),
-      '/home': (ctx) => const HomeScreen(),
-    };
-
     return Consumer<AppStore>(
       builder: (context, appStore, child) {
         return ShadApp.material(
@@ -98,6 +105,7 @@ class _AppState extends State<App> {
 
   bool _interceptor(bool stopDefaultButtonEvent, RouteInfo info) {
     final now = DateTime.now();
+    debugPrint('route: ${info.routeWhenAdded?.settings.name}');
 
     if (lastBackPressTime == null ||
         now.difference(lastBackPressTime!) > const Duration(seconds: 2)) {

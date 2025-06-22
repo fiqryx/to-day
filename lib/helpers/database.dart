@@ -17,8 +17,8 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    String path =
-        join(await getDatabasesPath(), dotenv.env['DB_NAME'] ?? 'to_day.db');
+    String path = join(
+        await getDatabasesPath(), dotenv.get('DB_NAME', fallback: 'to_day.db'));
     return await openDatabase(
       path,
       version: 2,

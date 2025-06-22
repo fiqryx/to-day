@@ -16,11 +16,11 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+  DateTime? lastBackPressTime;
 
   @override
   void initState() {
     super.initState();
-    // Initialize animation controller
     _controller = AnimationController(
       vsync: this,
       duration: widget.duration,

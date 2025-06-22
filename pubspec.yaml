@@ -1,7 +1,7 @@
 name: today
 description: "A minimalist yet powerful todo app that helps you focus on what matters today"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.3
 
 environment:
   sdk: ^3.5.2
@@ -22,6 +22,13 @@ dependencies:
   back_button_interceptor: ^8.0.4
   fluttertoast: ^8.2.12
   flutter_dotenv: ^5.2.1
+  audioplayers: ^6.4.0
+  timezone: ^0.10.1
+  flutter_ringtone_manager: ^1.1.2
+  awesome_notifications: ^0.10.0
+  file_picker: ^10.2.0
+  path_provider: ^2.1.5
+  file_saver: ^0.2.14
 
 dev_dependencies:
   flutter_test:

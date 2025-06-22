@@ -25,6 +25,17 @@ class Activity {
         createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 
+  DateTime get dateTime {
+    final timeParts = time.split(':');
+    return DateTime(
+      int.parse(date.split('-')[0]),
+      int.parse(date.split('-')[1]),
+      int.parse(date.split('-')[2]),
+      int.parse(timeParts[0]),
+      int.parse(timeParts[1]),
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

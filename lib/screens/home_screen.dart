@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _getData() async {
-    if (!mounted) return;
+    if (!mounted || _isLoading) return;
     setState(() => _isLoading = true);
     try {
       final activities = await _activityService.getByDate(_selectedDate);
@@ -77,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => AddActivityDialog(date: _selectedDate),
     );
+
     if (result != null) {
       _getData();
       _showToast('Activity added successfully');
@@ -159,7 +160,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        // backgroundColor: __colorScheme.primary,
         title: Text(
           dotenv.env['VAR_NAME'] ?? "ToDay",
           style: TextStyle(
@@ -167,6 +167,26 @@ class _HomeScreenState extends State<HomeScreen> {
             color: _colorScheme.primary,
           ),
         ),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(LucideIcons.ellipsisVertical),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: _colorScheme.input),
+            ),
+            onSelected: (value) => Navigator.pushNamed(context, '/$value'),
+            itemBuilder: (context) => const [
+              PopupMenuItem<String>(
+                value: 'settings',
+                child: Text('Settings'),
+              ),
+              PopupMenuItem<String>(
+                value: 'help',
+                child: Text('Help'),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -280,25 +300,36 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : _activities.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.separated(
-                        // how add gap/spacing ??
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _activities.length,
-                        itemBuilder: (context, index) {
-                          final activity = _activities[index];
-                          return ActivityCard(
-                            activity: activity,
-                            onTap: () => _onEdit(activity),
-                            onToggleComplete: () => _toggleCompletion(activity),
-                            onDelete: () => _onDelete(activity),
-                            isReadOnly: isPast,
-                          );
-                        },
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 12),
-                      ),
+                : RefreshIndicator(
+                    onRefresh: _getData,
+                    color: _colorScheme.accentForeground,
+                    backgroundColor: _colorScheme.accent,
+                    child: _activities.isEmpty
+                        ? SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.6,
+                              child: _buildEmptyState(),
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _activities.length,
+                            separatorBuilder: (c, i) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final activity = _activities[index];
+                              return ActivityCard(
+                                activity: activity,
+                                onTap: () => _onEdit(activity),
+                                onToggleComplete: () =>
+                                    _toggleCompletion(activity),
+                                onDelete: () => _onDelete(activity),
+                                isReadOnly: isPast,
+                              );
+                            },
+                          ),
+                  ),
           ),
         ],
       ),

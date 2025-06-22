@@ -6,6 +6,10 @@ class ActivityService {
 
   ActivityService({required this.activityRepo});
 
+  Future<List<Activity>> getAll() async {
+    return await activityRepo.getAll();
+  }
+
   Future<List<Activity>> getByDate(DateTime date) async {
     final dateString = _formatDate(date);
     return await activityRepo.getByDate(dateString);
@@ -32,6 +36,10 @@ class ActivityService {
     );
 
     return await activityRepo.insert(activity);
+  }
+
+  Future<void> createMany(List<Activity> activities) async {
+    return activityRepo.createMany(activities);
   }
 
   Future<Activity> update(Activity activity) async {

@@ -29,6 +29,9 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.debug
+            minifyEnabled true   // enables code shrinking
+            shrinkResources true // removes unused resources
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 }

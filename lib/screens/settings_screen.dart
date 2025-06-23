@@ -43,7 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _exportData() async {
+  Future<void> _onBackup() async {
     try {
       final activities = await _activityService.getAll();
 
@@ -81,7 +81,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _importData() async {
+  Future<void> _onRestore() async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -198,32 +198,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDataSection() {
+    var theme = ShadTheme.of(context);
     return ShadCard(
       padding: const EdgeInsets.all(0),
       child: Column(
         children: [
           ListTile(
-            title: Text(
-              'Export',
-              style: ShadTheme.of(context).textTheme.small,
+            onTap: _onBackup,
+            title: Text('Backup', style: theme.textTheme.small),
+            subtitle: Text(
+              "Save your data to device storage",
+              style: theme.textTheme.muted,
             ),
             trailing: Transform.scale(
               scale: 0.8,
               child: const Icon(LucideIcons.download),
             ),
-            onTap: _exportData,
           ),
           const Divider(height: 1),
           ListTile(
-            title: Text(
-              'Import',
-              style: ShadTheme.of(context).textTheme.small,
+            onTap: _onRestore,
+            title: Text('Restore', style: theme.textTheme.small),
+            subtitle: Text(
+              "Recover your data from backup",
+              style: theme.textTheme.muted,
             ),
             trailing: Transform.scale(
               scale: 0.8,
-              child: const Icon(LucideIcons.upload),
+              child: const Icon(LucideIcons.history),
             ),
-            onTap: _importData,
           ),
         ],
       ),

@@ -53,7 +53,10 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      _showToast("Error loading activities", e.toString());
+      _toast(ShadToast.destructive(
+        title: const Text('Get activities error'),
+        description: Text(e.toString()),
+      ));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -78,10 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) => AddActivityDialog(date: _selectedDate),
     );
 
-    if (result != null) {
-      _getData();
-      _showToast('Activity added successfully');
-    }
+    if (result != null) _getData();
   }
 
   Future<void> _onEdit(Activity activity) async {
@@ -92,10 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
         activity: activity,
       ),
     );
-    if (result != null) {
-      _getData();
-      _showToast('Activity updated successfully');
-    }
+    if (result != null) _getData();
   }
 
   Future<void> _toggleCompletion(Activity activity) async {
@@ -104,7 +101,10 @@ class _HomeScreenState extends State<HomeScreen> {
         await _activityService.toggleCompleted(activity.id!);
         _getData();
       } catch (e) {
-        _showToast('Error updating activity: $e');
+        _toast(ShadToast.destructive(
+          title: const Text('Update failed'),
+          description: Text(e.toString()),
+        ));
       }
     }
   }
@@ -139,19 +139,16 @@ class _HomeScreenState extends State<HomeScreen> {
       try {
         await _activityService.delete(activity.id!);
         _getData();
-        _showToast('Activity deleted successfully');
       } catch (e) {
-        _showToast('Error deleting activity: $e');
+        _toast(ShadToast.destructive(
+          title: const Text('Delete failed'),
+          description: Text(e.toString()),
+        ));
       }
     }
   }
 
-  void _showToast(String title, [String? message]) {
-    ShadToaster.of(context).show(ShadToast(
-      title: Text(title),
-      description: message?.isNotEmpty ?? false ? Text(message!) : null,
-    ));
-  }
+  void _toast(ShadToast toast) => ShadToaster.of(context).show(toast);
 
   @override
   Widget build(BuildContext context) {

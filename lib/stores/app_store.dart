@@ -16,15 +16,16 @@ class AppStore with ChangeNotifier {
       final reminder = await _storage.read(key: "reminder");
       final theme = await _storage.read(key: _themeKey);
 
-      _reminder = reminder == "true" ? true : false;
+      _reminder = reminder == "false" ? false : true; // default true
       _theme = theme == 'dark'
           ? ThemeMode.dark
           : theme == 'light'
               ? ThemeMode.light
               : ThemeMode.system;
-      notifyListeners();
     } catch (e) {
       _theme = ThemeMode.system;
+    } finally {
+      notifyListeners();
     }
   }
 

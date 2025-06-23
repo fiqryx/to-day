@@ -58,6 +58,8 @@ DB_NAME=to_day.db
 ```bash
 flutter build apk --release  # Android
 flutter build ios --release  # iOS
+# or
+flutter build apk --split-per-abi # Android
 ```
 #### ✅ Completed (v1.0)
 - [x] Basic task management
@@ -65,11 +67,11 @@ flutter build ios --release  # iOS
 - [x] Light/Dark theme toggle
 - [x] Daily progress statistics
 
-#### ⏳ In Progress (v1.5)
+<!-- #### ⏳ In Progress (v1.5)
 - [ ] **Sync Alarm**  
   ▸ Smart reminders tied to task deadlines  
   ▸ Customizable alert tones  
-  ▸ Snooze functionality  
+  ▸ Snooze functionality   -->
 
 <!-- ### ✨ Planned Features
 

@@ -1,7 +1,7 @@
 name: today
 description: "A minimalist yet powerful todo app that helps you focus on what matters today"
 publish_to: 'none'
-version: 1.0.3
+version: 1.0.4
 
 environment:
   sdk: ^3.5.2

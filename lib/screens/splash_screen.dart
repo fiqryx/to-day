@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:today/widgets/exit_interceptor.dart';
 
 class SplashScreen extends StatefulWidget {
   final Duration duration;
@@ -45,12 +46,14 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: Center(
-        child: FadeTransition(
-          opacity: _animation,
-          child: Image.asset('assets/logo.png', width: 160, height: 160),
+    return ExitInterceptor(
+      children: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        body: Center(
+          child: FadeTransition(
+            opacity: _animation,
+            child: Image.asset('assets/logo.png', width: 160, height: 160),
+          ),
         ),
       ),
     );

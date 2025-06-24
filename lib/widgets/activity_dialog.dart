@@ -441,10 +441,8 @@ class _AlarmSelector extends StatelessWidget {
   final Widget? title;
   final void Function()? onClick;
 
-  const _AlarmSelector({
-    this.title,
-    this.onClick,
-  });
+  // ignore: unused_element_parameter
+  const _AlarmSelector({this.title, this.onClick});
 
   @override
   Widget build(BuildContext context) {

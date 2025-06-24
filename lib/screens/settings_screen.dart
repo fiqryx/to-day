@@ -210,10 +210,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               "Save your data to device storage",
               style: theme.textTheme.muted,
             ),
-            trailing: Transform.scale(
-              scale: 0.8,
-              child: const Icon(LucideIcons.download),
-            ),
+            trailing: const Icon(size: 20, LucideIcons.download),
           ),
           const Divider(height: 1),
           ListTile(
@@ -223,10 +220,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               "Recover your data from backup",
               style: theme.textTheme.muted,
             ),
-            trailing: Transform.scale(
-              scale: 0.8,
-              child: const Icon(LucideIcons.history),
-            ),
+            trailing: const Icon(size: 20, LucideIcons.history),
           ),
         ],
       ),

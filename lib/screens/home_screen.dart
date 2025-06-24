@@ -7,6 +7,7 @@ import 'package:today/models/activity.dart';
 import 'package:today/services/activity_service.dart';
 import 'package:today/widgets/activity_card.dart';
 import 'package:today/widgets/activity_dialog.dart';
+import 'package:today/widgets/exit_interceptor.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -155,185 +156,190 @@ class _HomeScreenState extends State<HomeScreen> {
     final isToday = Utils.isSameDay(_selectedDate, DateTime.now());
     final isPast = _selectedDate.isBefore(DateTime.now()) && !isToday;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          dotenv.env['VAR_NAME'] ?? "ToDay",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: _colorScheme.primary,
+    return ExitInterceptor(
+      children: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            dotenv.env['VAR_NAME'] ?? "ToDay",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: _colorScheme.primary,
+            ),
           ),
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(LucideIcons.ellipsisVertical),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-              side: BorderSide(color: _colorScheme.input),
-            ),
-            onSelected: (value) => Navigator.pushNamed(context, '/$value'),
-            itemBuilder: (context) => const [
-              PopupMenuItem<String>(
-                value: 'settings',
-                child: Text('Settings'),
+          actions: [
+            PopupMenuButton<String>(
+              icon: const Icon(LucideIcons.ellipsisVertical),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(color: _colorScheme.input),
               ),
-              PopupMenuItem<String>(
-                value: 'help',
-                child: Text('Help'),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          ShadCard(
-            padding: const EdgeInsets.all(16),
-            border: Border(
-              top: BorderSide.none,
-              left: BorderSide(color: _colorScheme.border),
-              bottom: BorderSide(color: _colorScheme.border),
-              right: BorderSide(color: _colorScheme.border),
-            ),
-            radius: const BorderRadius.only(
-              bottomLeft: Radius.circular(16),
-              bottomRight: Radius.circular(16),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        GestureDetector(
-                          onTap: _onSelectDate,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: _colorScheme.muted,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.calendar_today,
-                                  color: _colorScheme.primary,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  DateFormat('dd/MM/yyyy')
-                                      .format(_selectedDate),
-                                  style: TextStyle(
-                                    color: _colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          DateFormat('EEEE, d MMMM yyyy').format(_selectedDate),
-                          style: TextStyle(
-                            color: _colorScheme.mutedForeground,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Quick Date Navigation
-                    Row(
-                      children: [
-                        _buildQuickDateButton(
-                          'Yesterday',
-                          DateTime.now().subtract(const Duration(days: 1)),
-                        ),
-                        const SizedBox(width: 4),
-                        _buildQuickDateButton('Today', DateTime.now()),
-                        const SizedBox(width: 4),
-                        _buildQuickDateButton(
-                          'Tomorrow',
-                          DateTime.now().add(const Duration(days: 1)),
-                        )
-                      ],
-                    ),
-                  ],
+              onSelected: (value) => Navigator.pushNamed(context, '/$value'),
+              itemBuilder: (context) => const [
+                PopupMenuItem<String>(
+                  value: 'settings',
+                  child: Text('Settings'),
                 ),
-                const SizedBox(height: 16),
-                // Stats Row
-                Row(
-                  children: [
-                    _buildStatCard(
-                      'Total',
-                      _stats['total']?.toString() ?? '0',
-                      LucideIcons.list,
-                      Colors.blue,
-                    ),
-                    const SizedBox(width: 12),
-                    _buildStatCard(
-                      'Done',
-                      _stats['completed']?.toString() ?? '0',
-                      LucideIcons.circleCheckBig,
-                      Colors.green,
-                    ),
-                    const SizedBox(width: 12),
-                    _buildStatCard(
-                      'High Priority',
-                      _stats['high_priority']?.toString() ?? '0',
-                      LucideIcons.info,
-                      Colors.red,
-                    ),
-                  ],
+                PopupMenuItem<String>(
+                  value: 'help',
+                  child: Text('Help'),
                 ),
               ],
             ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : RefreshIndicator(
-                    onRefresh: _getData,
-                    color: _colorScheme.accentForeground,
-                    backgroundColor: _colorScheme.accent,
-                    child: _activities.isEmpty
-                        ? SingleChildScrollView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            child: SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.6,
-                              child: _buildEmptyState(),
+          ],
+        ),
+        body: Column(
+          children: [
+            ShadCard(
+              padding: const EdgeInsets.all(16),
+              border: Border(
+                top: BorderSide.none,
+                left: BorderSide(color: _colorScheme.border),
+                bottom: BorderSide(color: _colorScheme.border),
+                right: BorderSide(color: _colorScheme.border),
+              ),
+              radius: const BorderRadius.only(
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          GestureDetector(
+                            onTap: _onSelectDate,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: _colorScheme.muted,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.calendar_today,
+                                    color: _colorScheme.primary,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    DateFormat('dd/MM/yyyy')
+                                        .format(_selectedDate),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: _colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          )
-                        : ListView.separated(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: _activities.length,
-                            separatorBuilder: (c, i) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final activity = _activities[index];
-                              return ActivityCard(
-                                activity: activity,
-                                onTap: () => _onEdit(activity),
-                                onToggleComplete: () =>
-                                    _toggleCompletion(activity),
-                                onDelete: () => _onDelete(activity),
-                                isReadOnly: isPast,
-                              );
-                            },
                           ),
+                          const SizedBox(height: 4),
+                          Text(
+                            DateFormat('EEEE, d MMMM yyyy')
+                                .format(_selectedDate),
+                            style: TextStyle(
+                              color: _colorScheme.mutedForeground,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Quick Date Navigation
+                      Row(
+                        children: [
+                          _buildQuickDateButton(
+                            'Yesterday',
+                            DateTime.now().subtract(const Duration(days: 1)),
+                          ),
+                          const SizedBox(width: 4),
+                          _buildQuickDateButton('Today', DateTime.now()),
+                          const SizedBox(width: 4),
+                          _buildQuickDateButton(
+                            'Tomorrow',
+                            DateTime.now().add(const Duration(days: 1)),
+                          )
+                        ],
+                      ),
+                    ],
                   ),
-          ),
-        ],
-      ),
-      floatingActionButton: ShadButton(
-        onPressed: _onCreate,
-        decoration: const ShadDecoration(shape: BoxShape.circle),
-        icon: const Icon(Icons.add),
+                  const SizedBox(height: 16),
+                  // Stats Row
+                  Row(
+                    children: [
+                      _buildStatCard(
+                        'Total',
+                        _stats['total']?.toString() ?? '0',
+                        LucideIcons.list,
+                        Colors.blue,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildStatCard(
+                        'Done',
+                        _stats['completed']?.toString() ?? '0',
+                        LucideIcons.circleCheckBig,
+                        Colors.green,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildStatCard(
+                        'High Priority',
+                        _stats['high_priority']?.toString() ?? '0',
+                        LucideIcons.info,
+                        Colors.red,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : RefreshIndicator(
+                      onRefresh: _getData,
+                      color: _colorScheme.accentForeground,
+                      backgroundColor: _colorScheme.accent,
+                      child: _activities.isEmpty
+                          ? SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.6,
+                                child: _buildEmptyState(),
+                              ),
+                            )
+                          : ListView.separated(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _activities.length,
+                              separatorBuilder: (c, i) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final activity = _activities[index];
+                                return ActivityCard(
+                                  activity: activity,
+                                  onTap: () => _onEdit(activity),
+                                  onToggleComplete: () =>
+                                      _toggleCompletion(activity),
+                                  onDelete: () => _onDelete(activity),
+                                  isReadOnly: isPast,
+                                );
+                              },
+                            ),
+                    ),
+            ),
+          ],
+        ),
+        floatingActionButton: ShadButton(
+          onPressed: _onCreate,
+          decoration: const ShadDecoration(shape: BoxShape.circle),
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }

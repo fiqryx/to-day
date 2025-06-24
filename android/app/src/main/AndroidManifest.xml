@@ -6,6 +6,7 @@
     <application
         android:label="ToDay"
         android:name="${applicationName}"
+        android:enableOnBackInvokedCallback="false"
         android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"

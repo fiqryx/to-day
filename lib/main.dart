@@ -1,7 +1,4 @@
-import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:today/helpers/database.dart';
 import 'package:today/helpers/notification.dart';
@@ -47,33 +44,14 @@ final routes = <String, WidgetBuilder>{
   '/help': (ctx) => const HelpScreen(),
 };
 
-class App extends StatefulWidget {
+class App extends StatelessWidget {
   const App({super.key});
-
-  @override
-  State<App> createState() => _App();
-}
-
-class _App extends State<App> {
-  DateTime? lastBackPressTime;
-
-  @override
-  void initState() {
-    super.initState();
-    BackButtonInterceptor.add(_interceptor);
-  }
-
-  @override
-  void dispose() {
-    BackButtonInterceptor.remove(_interceptor);
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AppStore>(
       builder: (context, appStore, child) {
-        return ShadApp.material(
+        return ShadApp(
           theme: ShadThemeData(
             brightness: Brightness.light,
             colorScheme: ShadColorScheme.fromName('zinc'),
@@ -101,27 +79,5 @@ class _App extends State<App> {
         );
       },
     );
-  }
-
-  bool _interceptor(bool stopDefaultButtonEvent, RouteInfo info) {
-    final now = DateTime.now();
-    debugPrint('route: ${info.routeWhenAdded?.settings.name}');
-
-    if (lastBackPressTime == null ||
-        now.difference(lastBackPressTime!) > const Duration(seconds: 2)) {
-      lastBackPressTime = now;
-
-      if (mounted) {
-        Fluttertoast.showToast(
-          msg: "Press back again to exit",
-          toastLength: Toast.LENGTH_SHORT,
-        );
-      }
-
-      return true; // intercept/stop the back button
-    } else {
-      SystemNavigator.pop(); // exit
-      return false;
-    }
   }
 }

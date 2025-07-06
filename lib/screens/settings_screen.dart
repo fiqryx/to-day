@@ -7,7 +7,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:today/helpers/notification.dart';
+import 'package:today/services/alarm_service.dart';
+import 'package:today/services/notification_service.dart';
 import 'package:today/helpers/utils.dart';
 import 'package:today/models/activity.dart';
 import 'package:today/services/activity_service.dart';
@@ -39,7 +40,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (reminder) {
       _rescheduleNotification();
     } else {
-      Notif.cancelAll();
+      AlarmService.instance.cancelAll();
+      NotificationService.cancelAll();
     }
   }
 
@@ -114,24 +116,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _rescheduleNotification() async {
-    debugPrint("reschedule all notification");
     for (var value in await _activityService.getAll()) {
-      var date = value.dateTime;
-      if (date.isAfter(DateTime.now()) && _appStore.reminder == true) {
-        await Notif.createScheduleNewNotification(
+      final id = value.id.hashCode.abs() % 2147483647;
+      final date = value.dateTime;
+      final now = DateTime.now();
+
+      if (date.isAfter(now) && _appStore.reminder == true) {
+        final duration = date.difference(now);
+
+        await AlarmService.instance.scheduleOneShot(
+          alarmId: id,
+          duration: duration,
+          payload: {
+            'type': 'alarm',
+            'activityId': value.id,
+            "date": date.toIso8601String()
+          },
+        );
+
+        await NotificationService.createScheduleNewNotification(
           date: date,
           content: NotificationContent(
-            id: value.id.hashCode.abs() % 2147483647,
-            channelKey: "basic_channel",
+            id: id,
+            channelKey: "silent_channel",
             title:
                 Utils.getActivityNotificationTitle(value.priority, value.title),
-            body:
-                "You scheduled this for ${DateFormat('MMM d, h:mm a').format(date)}",
+            body: Utils.getNotificationBody(date),
             payload: {
+              'type': 'alarm',
               'activityId': value.id,
-              'type': 'reminder',
+              "date": date.toIso8601String()
             },
           ),
+          actions: [
+            NotificationActionButton(
+              key: "stopAlarm",
+              label: "Stop",
+              actionType: ActionType.SilentAction,
+            ),
+            NotificationActionButton(
+              key: "snoozeAlarm",
+              label: "Snooze",
+              actionType: ActionType.SilentAction,
+            ),
+          ],
         );
       }
     }

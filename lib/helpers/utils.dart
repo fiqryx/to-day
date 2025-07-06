@@ -68,4 +68,30 @@ class Utils {
         return "🔔 Reminder: $title";
     }
   }
+
+  static String getNotificationBody(DateTime scheduledDate) {
+    final now = DateTime.now();
+    final timeLeft = scheduledDate.difference(now);
+    final formattedTime = DateFormat('MMM d, h:mm a').format(scheduledDate);
+
+    // Time-sensitive messaging
+    if (timeLeft.isNegative) {
+      return "⏰ Time’s up! Let’s tackle this now!";
+    }
+
+    final hoursLeft = timeLeft.inHours;
+    final minsLeft = timeLeft.inMinutes;
+
+    if (minsLeft <= 1) {
+      return "🚀 Starting now! Get ready for '$formattedTime'";
+    } else if (minsLeft <= 5) {
+      return "🔥 Almost time! '$formattedTime' (in $minsLeft mins)";
+    } else if (hoursLeft < 1) {
+      return "👀 Heads up! '$formattedTime' (in ~$minsLeft mins)";
+    } else if (hoursLeft <= 24) {
+      return "📌 Coming soon! '$formattedTime' (in ~$hoursLeft hrs)";
+    } else {
+      return "🗓 Scheduled for '$formattedTime'";
+    }
+  }
 }

@@ -1,11 +1,10 @@
-// ignore_for_file: unused_element
-
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:today/helpers/notification.dart';
 import 'package:today/helpers/utils.dart';
+import 'package:today/services/alarm_service.dart';
+import 'package:today/services/notification_service.dart';
 import 'package:today/stores/app_store.dart';
 import 'package:today/widgets/list_sheet.dart';
 import '../models/activity.dart';
@@ -86,8 +85,8 @@ class _AddActivityDialogState extends State<AddActivityDialog> {
     final picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime,
-      builder: (context, child) => Theme(
-        data: Theme.of(context),
+      builder: (context, child) => ShadTheme(
+        data: ShadTheme.of(context),
         child: child!,
       ),
     );
@@ -127,11 +126,9 @@ class _AddActivityDialogState extends State<AddActivityDialog> {
           time: timeString,
           priority: _selectedPriority,
         );
-        await _activityService.update(updatedActivity);
 
-        var notifId = updatedActivity.id.hashCode.abs() % 2147483647;
-        await Notif.cancel(notifId);
-        await _scheduleNotification(updatedActivity);
+        await _activityService.update(updatedActivity);
+        await _scheduleNotification(updatedActivity, isUpdate: true);
 
         if (!mounted) return;
         Navigator.pop(context, updatedActivity);
@@ -150,23 +147,56 @@ class _AddActivityDialogState extends State<AddActivityDialog> {
     }
   }
 
-  Future<void> _scheduleNotification(Activity activity) async {
+  Future<void> _scheduleNotification(Activity activity,
+      {bool? isUpdate}) async {
+    final now = DateTime.now();
     final scheduledDate = activity.dateTime;
-    if (scheduledDate.isAfter(DateTime.now()) && _appStore.reminder) {
-      await Notif.createScheduleNewNotification(
+
+    if (scheduledDate.isAfter(now) && _appStore.reminder) {
+      final id = activity.id.hashCode.abs() % 2147483647;
+      final duration = scheduledDate.difference(now);
+
+      if (isUpdate == true) {
+        await AlarmService.instance.cancel(id);
+      }
+
+      await AlarmService.instance.scheduleOneShot(
+        alarmId: id,
+        duration: duration,
+        payload: {
+          'type': 'alarm',
+          'activityId': activity.id,
+          "date": scheduledDate.toIso8601String()
+        },
+      );
+
+      // schedule notification
+      await NotificationService.createScheduleNewNotification(
         date: scheduledDate,
         content: NotificationContent(
-          id: activity.id.hashCode.abs() % 2147483647,
-          channelKey: "basic_channel",
+          id: id,
+          channelKey: "silent_channel",
           title: Utils.getActivityNotificationTitle(
               activity.priority, activity.title),
-          body:
-              "You scheduled this for ${DateFormat('MMM d, h:mm a').format(scheduledDate)}",
+          body: Utils.getNotificationBody(scheduledDate),
           payload: {
+            'type': 'alarm',
             'activityId': activity.id,
-            'type': 'reminder',
+            "date": scheduledDate.toIso8601String()
           },
         ),
+        actions: [
+          NotificationActionButton(
+            key: "stopAlarm",
+            label: "Stop",
+            actionType: ActionType.SilentAction,
+          ),
+          NotificationActionButton(
+            key: "snoozeAlarm",
+            label: "Snooze",
+            actionType: ActionType.SilentAction,
+          ),
+        ],
       );
     }
   }
@@ -285,6 +315,7 @@ class _AddActivityDialogState extends State<AddActivityDialog> {
     );
   }
 
+  // ignore: unused_element
   void _showSheet() {
     showModalBottomSheet(
       context: context,
@@ -437,6 +468,7 @@ class _PrioritySelector extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _AlarmSelector extends StatelessWidget {
   final Widget? title;
   final void Function()? onClick;

@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:today/helpers/database.dart';
-import 'package:today/helpers/notification.dart';
+import 'package:today/services/notification_service.dart';
 import 'package:today/repository/activity_repository.dart';
 import 'package:today/screens/help_screen.dart';
 import 'package:today/screens/home_screen.dart';
 import 'package:today/screens/settings_screen.dart';
 import 'package:today/screens/splash_screen.dart';
 import 'package:today/services/activity_service.dart';
+import 'package:today/services/alarm_service.dart';
 import 'package:today/stores/app_store.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+@pragma('vm:entry-point')
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Notif.initializeLocalNotifications();
-  await Notif.initializeIsolateReceivePort();
   await dotenv.load(fileName: ".env");
 
   final appStore = AppStore();
@@ -27,6 +27,13 @@ void main() async {
 
   final activityRepo = ActivityRepository(db: db);
   // more repository here...
+
+  final alramService = AlarmService.instance;
+  alramService.initialize();
+
+  await NotificationService.initializeLocalNotifications();
+  await NotificationService.initializeIsolateReceivePort();
+  await NotificationService.startListeningEvents();
 
   runApp(MultiProvider(
     providers: [

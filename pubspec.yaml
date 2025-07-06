@@ -31,6 +31,8 @@ dependencies:
   file_saver: ^0.2.14
   android_alarm_manager_plus: ^4.0.7
   permission_handler: ^12.0.0+1
+  vibration: ^3.1.3
+  add_2_calendar: ^3.0.1
 
 dev_dependencies:
   flutter_test:
@@ -42,6 +44,8 @@ flutter:
   assets:
     - .env
     - assets/
+    - assets/logo.png
+    - assets/sounds/
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true

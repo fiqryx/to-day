@@ -29,7 +29,7 @@
 
 2. Clone the repository:
    ```bash
-    git clone https://github.com/yourusername/today-app.git
+    git clone https://github.com/fiqryx/to-day.git
    ```
 
 3. Install dependencies:

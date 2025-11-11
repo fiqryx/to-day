@@ -27,7 +27,7 @@ class ActivityCard extends StatelessWidget {
       // elevation: 2,
       // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: isReadOnly ? null : onTap,
+        onTap: isReadOnly ? null : onToggleComplete,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -134,14 +134,14 @@ class ActivityCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     PopupMenuButton<String>(
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                            color: theme
-                                .colorScheme.input), // Your existing border
-                        borderRadius:
-                            BorderRadius.circular(8), // Add border radius here
+                        side: BorderSide(color: theme.colorScheme.input),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       onSelected: (value) {
                         switch (value) {
+                          // case 'toggle':
+                          //   onToggleComplete?.call();
+                          //   break;
                           case 'edit':
                             onTap?.call();
                             break;
@@ -151,6 +151,22 @@ class ActivityCard extends StatelessWidget {
                         }
                       },
                       itemBuilder: (context) => [
+                        // PopupMenuItem(
+                        //   value: 'toggle',
+                        //   child: Row(
+                        //     children: [
+                        //       Icon(
+                        //           activity.completed
+                        //               ? Icons.cancel_outlined
+                        //               : Icons.check,
+                        //           size: 18),
+                        //       SizedBox(width: 8),
+                        //       Text(activity.completed
+                        //           ? 'Mark Undone'
+                        //           : 'Mark Done'),
+                        //     ],
+                        //   ),
+                        // ),
                         const PopupMenuItem(
                           value: 'edit',
                           child: Row(

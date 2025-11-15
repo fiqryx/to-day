@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:today/helpers/database.dart';
-import 'package:today/helpers/notification.dart';
+import 'package:today/helpers/awesome_notification.dart';
 import 'package:today/repository/activity_repository.dart';
 import 'package:today/screens/help_screen.dart';
 import 'package:today/screens/home_screen.dart';
@@ -15,9 +15,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Notif.initializeLocalNotifications();
-  await Notif.initializeIsolateReceivePort();
   await dotenv.load(fileName: ".env");
+  await ANotification.initialize();
 
   final appStore = AppStore();
   await appStore.initialize();

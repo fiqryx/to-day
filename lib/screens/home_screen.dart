@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Activity> _activities = [];
   Map<String, int> _stats = {};
   bool _isLoading = false;
+  String _selectedPriority = 'all';
 
   @override
   void initState() {
@@ -43,9 +44,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _getData() async {
     if (!mounted || _isLoading) return;
-    setState(() => _isLoading = true);
     try {
-      final activities = await _activityService.getByDate(_selectedDate);
+      final activities =
+          await _activityService.getByDate(_selectedDate, _selectedPriority);
       final stats = await _activityService.getStats(_selectedDate);
 
       setState(() {
@@ -60,6 +61,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ));
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    if (!mounted || _isLoading) return;
+    setState(() => _isLoading = true);
+    try {
+      await _getData();
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -204,6 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Column(
@@ -242,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            DateFormat('EEEE, d MMMM yyyy')
+                            DateFormat('EE, d MMMM yyyy')
                                 .format(_selectedDate),
                             style: TextStyle(
                               color: _colorScheme.mutedForeground,
@@ -252,19 +264,85 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       // Quick Date Navigation
-                      Row(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          _buildQuickDateButton(
-                            'Yesterday',
-                            DateTime.now().subtract(const Duration(days: 1)),
+                          PopupMenuButton<String>(
+                            onSelected: (String newValue) {
+                              setState(() {
+                                _selectedPriority = newValue;
+                                _getData();
+                              });
+                            },
+                            itemBuilder: (BuildContext context) => [
+                              PopupMenuItem<String>(
+                                value: 'all',
+                                child: Text('All'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'high',
+                                child: Text('High'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'medium',
+                                child: Text('Medium'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'low',
+                                child: Text('Low'),
+                              ),
+                            ],
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: _colorScheme.muted,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.filter_list,
+                                    color: _colorScheme.primary,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _getPriorityText(_selectedPriority),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: _colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Icon(
+                                    Icons.arrow_drop_down,
+                                    color: _colorScheme.primary,
+                                    size: 12,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 4),
-                          _buildQuickDateButton('Today', DateTime.now()),
-                          const SizedBox(width: 4),
-                          _buildQuickDateButton(
-                            'Tomorrow',
-                            DateTime.now().add(const Duration(days: 1)),
-                          )
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              _buildQuickDateButton(
+                                'Yesterday',
+                                DateTime.now()
+                                    .subtract(const Duration(days: 1)),
+                              ),
+                              const SizedBox(width: 4),
+                              _buildQuickDateButton('Today', DateTime.now()),
+                              const SizedBox(width: 4),
+                              _buildQuickDateButton(
+                                'Tomorrow',
+                                DateTime.now().add(const Duration(days: 1)),
+                              )
+                            ],
+                          ),
                         ],
                       ),
                     ],
@@ -302,7 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : RefreshIndicator(
-                      onRefresh: _getData,
+                      onRefresh: _onRefresh,
                       color: _colorScheme.accentForeground,
                       backgroundColor: _colorScheme.accent,
                       child: _activities.isEmpty
@@ -431,5 +509,20 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  String _getPriorityText(String priority) {
+    switch (priority) {
+      case 'all':
+        return 'All';
+      case 'high':
+        return 'High';
+      case 'medium':
+        return 'Medium';
+      case 'low':
+        return 'Low';
+      default:
+        return priority;
+    }
   }
 }

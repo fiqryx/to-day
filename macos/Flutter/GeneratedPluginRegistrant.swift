@@ -11,6 +11,7 @@ import file_picker
 import file_saver
 import flutter_ringtone_manager
 import flutter_secure_storage_macos
+import flutter_timezone
 import path_provider_foundation
 import sqflite_darwin
 
@@ -21,6 +22,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FileSaverPlugin.register(with: registry.registrar(forPlugin: "FileSaverPlugin"))
   FlutterRingtoneManagerPlugin.register(with: registry.registrar(forPlugin: "FlutterRingtoneManagerPlugin"))
   FlutterSecureStoragePlugin.register(with: registry.registrar(forPlugin: "FlutterSecureStoragePlugin"))
+  FlutterTimezonePlugin.register(with: registry.registrar(forPlugin: "FlutterTimezonePlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
   SqflitePlugin.register(with: registry.registrar(forPlugin: "SqflitePlugin"))
 }

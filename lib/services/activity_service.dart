@@ -10,9 +10,9 @@ class ActivityService {
     return await activityRepo.getAll();
   }
 
-  Future<List<Activity>> getByDate(DateTime date) async {
+  Future<List<Activity>> getByDate(DateTime date, String? priority) async {
     final dateString = _formatDate(date);
-    return await activityRepo.getByDate(dateString);
+    return await activityRepo.getByDate(dateString, priority);
   }
 
   Future<Map<String, int>> getStats(DateTime date) async {

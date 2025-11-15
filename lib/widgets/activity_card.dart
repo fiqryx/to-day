@@ -27,7 +27,7 @@ class ActivityCard extends StatelessWidget {
       // elevation: 2,
       // shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: isReadOnly ? null : onTap,
+        onTap: isReadOnly ? null : onToggleComplete,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -134,11 +134,8 @@ class ActivityCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     PopupMenuButton<String>(
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                            color: theme
-                                .colorScheme.input), // Your existing border
-                        borderRadius:
-                            BorderRadius.circular(8), // Add border radius here
+                        side: BorderSide(color: theme.colorScheme.input),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       onSelected: (value) {
                         switch (value) {

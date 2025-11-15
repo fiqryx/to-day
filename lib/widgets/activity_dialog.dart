@@ -4,6 +4,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:today/helpers/awesome_notification.dart';
 import 'package:today/helpers/notification.dart';
 import 'package:today/helpers/utils.dart';
 import 'package:today/stores/app_store.dart';
@@ -153,11 +154,13 @@ class _AddActivityDialogState extends State<AddActivityDialog> {
   Future<void> _scheduleNotification(Activity activity) async {
     final scheduledDate = activity.dateTime;
     if (scheduledDate.isAfter(DateTime.now()) && _appStore.reminder) {
-      await Notif.createScheduleNewNotification(
-        date: scheduledDate,
+      await ANotification.createSchedule(
+        schedule: NotificationCalendar.fromDate(
+            date: scheduledDate, allowWhileIdle: true, repeats: false),
         content: NotificationContent(
           id: activity.id.hashCode.abs() % 2147483647,
           channelKey: "basic_channel",
+          category: NotificationCategory.Reminder,
           title: Utils.getActivityNotificationTitle(
               activity.priority, activity.title),
           body:

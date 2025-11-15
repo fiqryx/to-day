@@ -10,14 +10,23 @@ class ActivityRepository {
 
   // CRUD Operations
 
-  Future<List<Activity>> getByDate(String date) async {
+  Future<List<Activity>> getByDate(String date, String? priority) async {
     try {
+      String whereClause = 'date = ?';
+      List<dynamic> whereArgs = [date];
+
+      if (priority != null && priority != 'all') {
+        whereClause += ' AND priority = ?';
+        whereArgs.add(priority);
+      }
+
       final maps = await db.query(
         'activities',
-        where: 'date = ?',
-        whereArgs: [date],
+        where: whereClause,
+        whereArgs: whereArgs,
         orderBy: 'time ASC',
       );
+
       return maps.map((map) => Activity.fromMap(map)).toList();
     } catch (e) {
       throw DatabaseException('Failed to fetch activities by date: $e');

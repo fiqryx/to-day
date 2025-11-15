@@ -29,7 +29,7 @@
 
 2. Clone the repository:
    ```bash
-    git clone https://github.com/yourusername/today-app.git
+    git clone https://github.com/fiqryx/to-day.git
    ```
 
 3. Install dependencies:
@@ -61,11 +61,12 @@ flutter build ios --release  # iOS
 # or
 flutter build apk --split-per-abi # Android
 ```
-#### ✅ Completed (v1.0)
+#### ✅ Completed (v1.0.6)
 - [x] Basic task management
 - [x] Priority tagging (High/Medium/Low)
 - [x] Light/Dark theme toggle
 - [x] Daily progress statistics
+- [x] Filtering task by priority
 
 <!-- #### ⏳ In Progress (v1.5)
 - [ ] **Sync Alarm**  

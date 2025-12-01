@@ -160,6 +160,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _onSwipe(DragEndDetails details) {
+    var duration = const Duration(days: 1);
+    if (details.primaryVelocity! > 0) {
+      // Swipe Right -> Previous Day
+      setState(() => _selectedDate = _selectedDate.subtract(duration));
+      _getData();
+    } else if (details.primaryVelocity! < 0) {
+      // Swipe Left -> Next Day
+      setState(() => _selectedDate = _selectedDate.add(duration));
+      _getData();
+    }
+  }
+  
   void _toast(ShadToast toast) => ShadToaster.of(context).show(toast);
 
   @override
@@ -254,8 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            DateFormat('EE, d MMMM yyyy')
-                                .format(_selectedDate),
+                            DateFormat('EE, d MMMM yyyy').format(_selectedDate),
                             style: TextStyle(
                               color: _colorScheme.mutedForeground,
                               fontSize: 12,
@@ -379,41 +391,46 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : RefreshIndicator(
-                      onRefresh: _onRefresh,
-                      color: _colorScheme.accentForeground,
-                      backgroundColor: _colorScheme.accent,
-                      child: _activities.isEmpty
-                          ? SingleChildScrollView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              child: SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.6,
-                                child: _buildEmptyState(),
+                  : GestureDetector(
+                      onHorizontalDragEnd: _onSwipe,
+                      child: RefreshIndicator(
+                        onRefresh: _onRefresh,
+                        color: _colorScheme.accentForeground,
+                        backgroundColor: _colorScheme.accent,
+                        child: _activities.isEmpty
+                            ? SingleChildScrollView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                child: SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.6,
+                                  child: _buildEmptyState(),
+                                ),
+                              )
+                            : ListView.separated(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: _activities.length,
+                                separatorBuilder: (c, i) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  final activity = _activities[index];
+                                  return ActivityCard(
+                                    activity: activity,
+                                    onTap: () => _onEdit(activity),
+                                    onToggleComplete: () =>
+                                        _toggleCompletion(activity),
+                                    onDelete: () => _onDelete(activity),
+                                    isReadOnly: isPast,
+                                  );
+                                },
                               ),
-                            )
-                          : ListView.separated(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: _activities.length,
-                              separatorBuilder: (c, i) =>
-                                  const SizedBox(height: 12),
-                              itemBuilder: (context, index) {
-                                final activity = _activities[index];
-                                return ActivityCard(
-                                  activity: activity,
-                                  onTap: () => _onEdit(activity),
-                                  onToggleComplete: () =>
-                                      _toggleCompletion(activity),
-                                  onDelete: () => _onDelete(activity),
-                                  isReadOnly: isPast,
-                                );
-                              },
-                            ),
+                      ),
                     ),
             ),
           ],
         ),
-        floatingActionButton: ShadButton(
+        floatingActionButton: isPast
+            ? null
+            : ShadButton(
           onPressed: _onCreate,
           decoration: const ShadDecoration(shape: BoxShape.circle),
           child: const Icon(Icons.add),

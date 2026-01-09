@@ -137,6 +137,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _onReset() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Data'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: ShadTheme.of(context).colorScheme.input),
+        ),
+        content: const Padding(
+          padding: EdgeInsets.only(bottom: 8),
+          child: Text('Are you sure? This action cannot be undone.'),
+        ),
+        actions: [
+          ShadButton.outline(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ShadButton.destructive(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await _activityService.deleteAll();
+        await Notif.cancelAll();
+
+        if (mounted) {
+          Fluttertoast.showToast(msg: 'All data deleted successfully');
+        }
+      } catch (e) {
+        if (mounted) {
+          Fluttertoast.showToast(msg: 'Reset failed: $e');
+        }
+      }
+    }
+  }   
+
   void _openUrl(String url) {
     debugPrint('Opening URL: $url');
   }
@@ -221,6 +263,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: theme.textTheme.muted,
             ),
             trailing: const Icon(size: 20, LucideIcons.history),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            onTap: _onReset,
+            title: Text('Reset', style: theme.textTheme.small),
+            subtitle: Text(
+              "Reset all data",
+              style: theme.textTheme.muted,
+            ),
+            trailing: const Icon(size: 20, LucideIcons.refreshCcw),
           ),
         ],
       ),

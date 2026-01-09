@@ -164,13 +164,29 @@ class ActivityRepository {
   Future<void> createMany(List<Activity> activities) async {
     final batch = db.batch();
     for (final activity in activities) {
-      batch.insert(
+      // Check for existence before adding to batch
+      // Since we can't await inside batch, we have to check individually
+      // or assume the caller has filtered.
+      // User request: "clicked more is not duplicate"
+
+      // Effective approach: Query first, then insert if not exists.
+      final existing = await db.query(
         'activities',
-        activity.id != null
-            ? activity.copyWith(id: _uuid.v4()).toMap()
-            : activity.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        columns: ['id'],
+        where: 'date = ? AND title = ? AND time = ?',
+        whereArgs: [activity.date, activity.title, activity.time],
+        limit: 1,
       );
+
+      if (existing.isEmpty) {
+        batch.insert(
+          'activities',
+          activity.id != null
+              ? activity.copyWith(id: _uuid.v4()).toMap()
+              : activity.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
     }
     await batch.commit();
   }
@@ -183,6 +199,14 @@ class ActivityRepository {
       );
     } catch (e) {
       throw DatabaseException('Failed to delete completed activities: $e');
+    }
+  }
+
+  Future<int> deleteAll() async {
+    try {
+      return await db.delete('activities');
+    } catch (e) {
+      throw DatabaseException('Failed to delete all activities: $e');
     }
   }
 }

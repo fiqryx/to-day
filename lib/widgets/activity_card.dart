@@ -6,6 +6,7 @@ class ActivityCard extends StatelessWidget {
   final Activity activity;
   final VoidCallback? onTap;
   final VoidCallback? onToggleComplete;
+  final VoidCallback? onRepeat;
   final VoidCallback? onDelete;
   final bool isReadOnly;
 
@@ -14,6 +15,7 @@ class ActivityCard extends StatelessWidget {
     required this.activity,
     this.onTap,
     this.onToggleComplete,
+    this.onRepeat,
     this.onDelete,
     this.isReadOnly = false,
   });
@@ -142,6 +144,9 @@ class ActivityCard extends StatelessWidget {
                           case 'edit':
                             onTap?.call();
                             break;
+                          case 'repeat':
+                            onRepeat?.call();
+                            break;
                           case 'delete':
                             onDelete?.call();
                             break;
@@ -155,6 +160,16 @@ class ActivityCard extends StatelessWidget {
                               Icon(Icons.edit, size: 18),
                               SizedBox(width: 8),
                               Text('Edit'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'repeat',
+                          child: Row(
+                            children: [
+                              Icon(Icons.autorenew, size: 18),
+                              SizedBox(width: 8),
+                              Text('Repeat'),
                             ],
                           ),
                         ),

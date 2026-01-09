@@ -172,11 +172,118 @@ class _HomeScreenState extends State<HomeScreen> {
       _getData();
     }
   }
-  
+
+  Future<void> _onRepeatAll() async {
+    DateTime initialDate = _selectedDate.add(const Duration(days: 1));
+    final now = DateTime.now();
+    if (initialDate.isBefore(now)) {
+      initialDate = now;
+    }
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: now,
+      lastDate: DateTime(2030),
+    );
+
+    if (picked != null) {
+      try {
+        List<Activity> newActivities = [];
+
+        // Iterate from the day after selected date up to the picked date
+        DateTime currentDate = _selectedDate.add(const Duration(days: 1));
+        while (currentDate.isBefore(picked) ||
+            Utils.isSameDay(currentDate, picked)) {
+          final dailyActivities = _activities
+              .map((a) => Activity(
+                    title: a.title,
+                    description: a.description,
+                    date: Utils.formatForDatabase(currentDate),
+                    time: a.time,
+                    priority: a.priority,
+                  ))
+              .toList();
+          newActivities.addAll(dailyActivities);
+          currentDate = currentDate.add(const Duration(days: 1));
+        }
+
+        await _activityService.createMany(newActivities);
+
+        if (mounted) {
+          _toast(ShadToast(
+            title: const Text('Success'),
+            description: Text(
+                'Repeated ${_activities.length} activities until ${Utils.formatForDisplay(picked)}'),
+          ));
+        }
+      } catch (e) {
+        if (mounted) {
+          _toast(ShadToast.destructive(
+            title: const Text('Repeat All failed'),
+            description: Text(e.toString()),
+          ));
+        }
+      }
+    }
+  }
+
+  Future<void> _onRepeat(Activity activity) async {
+    DateTime initialDate = _selectedDate.add(const Duration(days: 1));
+    final now = DateTime.now();
+    if (initialDate.isBefore(now)) {
+      initialDate = now;
+    }
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: now,
+      lastDate: DateTime(2030),
+    );
+
+    if (picked != null) {
+      try {
+        List<Activity> newActivities = [];
+
+        // Iterate from the day after selected date up to the picked date
+        DateTime currentDate = _selectedDate.add(const Duration(days: 1));
+        while (currentDate.isBefore(picked) ||
+            Utils.isSameDay(currentDate, picked)) {
+          newActivities.add(Activity(
+            title: activity.title,
+            description: activity.description,
+            date: Utils.formatForDatabase(currentDate),
+            time: activity.time,
+            priority: activity.priority,
+          ));
+          currentDate = currentDate.add(const Duration(days: 1));
+        }
+
+        await _activityService.createMany(newActivities);
+
+        if (mounted) {
+          _toast(ShadToast(
+            title: const Text('Success'),
+            description: Text(
+                'Repeated "${activity.title}" until ${Utils.formatForDisplay(picked)}'),
+          ));
+        }
+      } catch (e) {
+        if (mounted) {
+          _toast(ShadToast.destructive(
+            title: const Text('Repeat failed'),
+            description: Text(e.toString()),
+          ));
+        }
+      }
+    }
+  }
+
   void _toast(ShadToast toast) => ShadToaster.of(context).show(toast);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {  
     final isToday = Utils.isSameDay(_selectedDate, DateTime.now());
     final isPast = _selectedDate.isBefore(DateTime.now()) && !isToday;
 
@@ -197,8 +304,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(8),
                 side: BorderSide(color: _colorScheme.input),
               ),
-              onSelected: (value) => Navigator.pushNamed(context, '/$value'),
+              onSelected: (value) {
+                if (value == 'repeat-all') {
+                  _onRepeatAll();
+                  return;
+                }
+                Navigator.pushNamed(context, '/$value');
+              },
               itemBuilder: (context) => const [
+                PopupMenuItem<String>(
+                  value: 'repeat-all',
+                  child: Text('Repeat All'),
+                ),
                 PopupMenuItem<String>(
                   value: 'settings',
                   child: Text('Settings'),
@@ -415,6 +532,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   final activity = _activities[index];
                                   return ActivityCard(
                                     activity: activity,
+                                    onRepeat: () => _onRepeat(activity),
                                     onTap: () => _onEdit(activity),
                                     onToggleComplete: () =>
                                         _toggleCompletion(activity),

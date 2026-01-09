@@ -55,6 +55,10 @@ class ActivityService {
     return await activityRepo.delete(id);
   }
 
+  Future<void> deleteAll() async {
+    await activityRepo.deleteAll();
+  }
+
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }

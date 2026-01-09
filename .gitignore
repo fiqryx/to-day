@@ -9,6 +9,7 @@
 .buildlog/
 .history
 .svn/
+.kotlin/
 migrate_working_dir/
 
 # IntelliJ related
